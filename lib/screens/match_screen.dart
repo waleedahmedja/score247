@@ -149,4 +149,72 @@ class _MatchScreenState extends State<MatchScreen> {
                 Text(
                   "$currentRuns/$currentWickets",
                   style: const TextStyle(color: Colors.white, fontSize: 40),
-       
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  "Overs: ${currentBalls ~/ 6}.${currentBalls % 6}",
+                  style: const TextStyle(color: Colors.white, fontSize: 20),
+                ),
+              ],
+            ),
+
+            // Control Buttons
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ElevatedButton(
+                  onPressed: () => updateScore(1),
+                  child: const Text("One"),
+                ),
+                ElevatedButton(
+                  onPressed: () => updateScore(2),
+                  child: const Text("Two"),
+                ),
+                ElevatedButton(
+                  onPressed: () => updateScore(3),
+                  child: const Text("Three"),
+                ),
+                ElevatedButton(
+                  onPressed: () => updateScore(4),
+                  child: const Text("Four"),
+                ),
+                ElevatedButton(
+                  onPressed: () => updateScore(6),
+                  child: const Text("Six"),
+                ),
+                ElevatedButton(
+                  onPressed: () => updateScore(0, isWicket: true),
+                  child: const Text("Wicket"),
+                ),
+                ElevatedButton(
+                  onPressed: () => updateScore(1, isExtraBall: true),
+                  child: const Text("Wide"),
+                ),
+                ElevatedButton(
+                  onPressed: () => updateScore(1, isExtraBall: true),
+                  child: const Text("No Ball"),
+                ),
+                ElevatedButton(
+                  onPressed: () => updateScore(0, isExtraBall: true),
+                  child: const Text("Ball Again"),
+                ),
+              ],
+            ),
+
+            // Next Innings or End Match Button
+            if (isTeam1Batting)
+              ElevatedButton(
+                onPressed: nextInnings,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text("Next Innings"),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
