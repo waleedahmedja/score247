@@ -17,7 +17,6 @@ class MatchScreen extends StatefulWidget {
 }
 
 class _MatchScreenState extends State<MatchScreen> {
-  // Match state
   int team1Runs = 0;
   int team1Wickets = 0;
   int team1Balls = 0;
@@ -27,22 +26,17 @@ class _MatchScreenState extends State<MatchScreen> {
   int team2Balls = 0;
 
   bool isTeam1Batting = true;
-  late int totalBalls; // Total balls per innings (overs * 6)
+  late int totalBalls;
 
   @override
   void initState() {
     super.initState();
-    // Calculate total balls for an innings
-    totalBalls = widget.overs == "Unlimited"
-        ? 9999 // Practically unlimited
-        : int.parse(widget.overs) * 6;
+    totalBalls = widget.overs == "Unlimited" ? 9999 : int.parse(widget.overs) * 6;
   }
 
-  // Handle score update
   void updateScore(int runs, {bool isWicket = false, bool isExtraBall = false}) {
     setState(() {
       if (isTeam1Batting) {
-        // Team 1 is batting
         if (isWicket) {
           team1Wickets++;
         } else {
@@ -50,7 +44,6 @@ class _MatchScreenState extends State<MatchScreen> {
         }
         if (!isExtraBall) team1Balls++;
       } else {
-        // Team 2 is batting
         if (isWicket) {
           team2Wickets++;
         } else {
@@ -59,30 +52,25 @@ class _MatchScreenState extends State<MatchScreen> {
         if (!isExtraBall) team2Balls++;
       }
 
-      // Check for innings end conditions
       checkInningsEnd();
     });
   }
 
-  // Check if innings has ended
   void checkInningsEnd() {
     final currentBalls = isTeam1Batting ? team1Balls : team2Balls;
     final currentWickets = isTeam1Batting ? team1Wickets : team2Wickets;
 
     if (currentBalls >= totalBalls || currentWickets >= widget.playersPerTeam - 1) {
-      // End the current innings
       if (isTeam1Batting) {
         setState(() {
           isTeam1Batting = false;
         });
       } else {
-        // Match ends after Team 2's innings
         showMatchSummary();
       }
     }
   }
 
-  // Show match summary
   void showMatchSummary() {
     String result;
     if (team1Runs > team2Runs) {
@@ -119,7 +107,6 @@ class _MatchScreenState extends State<MatchScreen> {
     );
   }
 
-  // Reset for next innings
   void nextInnings() {
     setState(() {
       isTeam1Batting = false;
@@ -141,68 +128,61 @@ class _MatchScreenState extends State<MatchScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Scorecard
-            Column(
-              children: [
-                Text(
-                  "$currentRuns/$currentWickets",
-                  style: const TextStyle(color: Colors.white, fontSize: 40),
+            // Scorecard Display
+            Card(
+              color: Colors.grey[800],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: 5,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    Text(
+                      "$currentRuns/$currentWickets",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      "Overs: ${currentBalls ~/ 6}.${currentBalls % 6}",
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  "Overs: ${currentBalls ~/ 6}.${currentBalls % 6}",
-                  style: const TextStyle(color: Colors.white, fontSize: 20),
-                ),
-              ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Buttons for Scoring
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 3,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                children: [
+                  buildScoreButton("One", 1, Colors.green),
+                  buildScoreButton("Two", 2, Colors.teal),
+                  buildScoreButton("Three", 3, Colors.orange),
+                  buildScoreButton("Four", 4, Colors.blue),
+                  buildScoreButton("Six", 6, Colors.purple),
+                  buildScoreButton("Wicket", 0, Colors.red, isWicket: true),
+                  buildScoreButton("Wide", 1, Colors.yellow, isExtraBall: true),
+                  buildScoreButton("No Ball", 1, Colors.amber, isExtraBall: true),
+                  buildScoreButton("Ball Again", 0, Colors.brown, isExtraBall: true),
+                ],
+              ),
             ),
 
-            // Control Buttons
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ElevatedButton(
-                  onPressed: () => updateScore(1),
-                  child: const Text("One"),
-                ),
-                ElevatedButton(
-                  onPressed: () => updateScore(2),
-                  child: const Text("Two"),
-                ),
-                ElevatedButton(
-                  onPressed: () => updateScore(3),
-                  child: const Text("Three"),
-                ),
-                ElevatedButton(
-                  onPressed: () => updateScore(4),
-                  child: const Text("Four"),
-                ),
-                ElevatedButton(
-                  onPressed: () => updateScore(6),
-                  child: const Text("Six"),
-                ),
-                ElevatedButton(
-                  onPressed: () => updateScore(0, isWicket: true),
-                  child: const Text("Wicket"),
-                ),
-                ElevatedButton(
-                  onPressed: () => updateScore(1, isExtraBall: true),
-                  child: const Text("Wide"),
-                ),
-                ElevatedButton(
-                  onPressed: () => updateScore(1, isExtraBall: true),
-                  child: const Text("No Ball"),
-                ),
-                ElevatedButton(
-                  onPressed: () => updateScore(0, isExtraBall: true),
-                  child: const Text("Ball Again"),
-                ),
-              ],
-            ),
-
-            // Next Innings or End Match Button
+            // Next Innings or Finish Match
             if (isTeam1Batting)
               ElevatedButton(
                 onPressed: nextInnings,
@@ -210,9 +190,33 @@ class _MatchScreenState extends State<MatchScreen> {
                   backgroundColor: Colors.green,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text("Next Innings"),
+                child: const Text(
+                  "Next Innings",
+                  style: TextStyle(fontSize: 18),
+                ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // Build Button Widget for Scoring
+  Widget buildScoreButton(String label, int runs, Color color,
+      {bool isWicket = false, bool isExtraBall = false}) {
+    return ElevatedButton(
+      onPressed: () => updateScore(runs, isWicket: isWicket, isExtraBall: isExtraBall),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        padding: const EdgeInsets.all(12),
+      ),
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
