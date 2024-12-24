@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'toss_screen.dart';
-import '../widgets/dropdown_widget.dart';
-import '../widgets/toggle_widget.dart';
+import 'match_screen.dart';
+import 'quick_match_screen.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -11,12 +10,13 @@ class SetupScreen extends StatefulWidget {
 }
 
 class _SetupScreenState extends State<SetupScreen> {
-  int? selectedPlayers; // Players per team
-  String? selectedOvers; // Number of overs
-  String selectedToss = "Heads"; // Default toss option
+  String team1Name = "Team 1";
+  String team2Name = "Team 2";
+  List<String> team1Players = [];
+  List<String> team2Players = [];
+  String matchMode = "Quick Match";
 
-  final List<int> playerOptions = [4, 5, 6, 7, 8, 9];
-  final List<String> overOptions = ['1', '2', '3', '4', '5', '6', 'Unlimited'];
+  final List<String> matchModes = ["Quick Match", "Advanced Match"];
 
   @override
   Widget build(BuildContext context) {
@@ -29,65 +29,82 @@ class _SetupScreenState extends State<SetupScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Dropdown for selecting players
-            DropdownWidget<int>(
-              title: 'Select Players Per Team:',
-              value: selectedPlayers,
-              options: playerOptions,
-              onChanged: (value) {
-                setState(() {
-                  selectedPlayers = value;
-                });
-              },
+            // Team 1 Name
+            const Text("Team 1 Name:", style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 8),
+            TextField(
+              onChanged: (value) => setState(() => team1Name = value),
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.grey[800],
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                hintText: "Enter Team 1 Name",
+                hintStyle: const TextStyle(color: Colors.white60),
+              ),
             ),
             const SizedBox(height: 20),
 
-            // Dropdown for selecting overs
-            DropdownWidget<String>(
-              title: 'Select Number of Overs:',
-              value: selectedOvers,
-              options: overOptions,
-              onChanged: (value) {
-                setState(() {
-                  selectedOvers = value;
-                });
-              },
+            // Team 2 Name
+            const Text("Team 2 Name:", style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 8),
+            TextField(
+              onChanged: (value) => setState(() => team2Name = value),
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.grey[800],
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                hintText: "Enter Team 2 Name",
+                hintStyle: const TextStyle(color: Colors.white60),
+              ),
             ),
             const SizedBox(height: 20),
 
-            // Toggle for selecting Heads or Tails
-            ToggleWidget(
-              title: 'Select Toss:',
-              options: ['Heads', 'Tails'],
-              selectedValue: selectedToss,
-              onSelected: (value) {
-                setState(() {
-                  selectedToss = value;
-                });
-              },
+            // Match Mode Selector
+            const Text("Match Mode:", style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: matchMode,
+              onChanged: (value) => setState(() => matchMode = value!),
+              items: matchModes
+                  .map((mode) => DropdownMenuItem(value: mode, child: Text(mode)))
+                  .toList(),
+              dropdownColor: Colors.grey[800],
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.grey[800],
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              ),
             ),
             const SizedBox(height: 30),
 
-            // Proceed button
+            // Proceed Button
             ElevatedButton(
               onPressed: () {
-                if (selectedPlayers != null && selectedOvers != null) {
+                if (matchMode == "Quick Match") {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TossScreen(
-                        selectedPlayers: selectedPlayers!,
-                        selectedOvers: selectedOvers!,
-                        selectedToss: selectedToss,
+                      builder: (context) => QuickMatchScreen(
+                        team1Name: team1Name,
+                        team2Name: team2Name,
                       ),
                     ),
                   );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please fill all the fields'),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MatchScreen(
+                        team1Name: team1Name,
+                        team2Name: team2Name,
+                        team1Players: team1Players,
+                        team2Players: team2Players,
+                      ),
                     ),
                   );
                 }
@@ -96,10 +113,7 @@ class _SetupScreenState extends State<SetupScreen> {
                 backgroundColor: Colors.blueAccent,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: const Text(
-                'Proceed to Toss',
-                style: TextStyle(fontSize: 18),
-              ),
+              child: const Text("Start Match", style: TextStyle(fontSize: 18)),
             ),
           ],
         ),
