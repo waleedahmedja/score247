@@ -280,3 +280,30 @@ class _MatchScreenState extends State<MatchScreen> {
     );
   }
 }
+Expanded(
+  child: ListView.builder(
+    itemCount: currentTeam.length,
+    itemBuilder: (context, index) {
+      final player = currentTeam[index];
+      return ListTile(
+        title: Text(
+          player.name,
+          style: const TextStyle(color: Colors.white),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Runs: ${player.runs}, Balls: ${player.ballsFaced}, Strike Rate: ${player.strikeRate.toStringAsFixed(2)}",
+              style: const TextStyle(color: Colors.white70),
+            ),
+            Text(
+              "Fours: ${player.fours}, Sixes: ${player.sixes}, Dot Balls: ${player.dotBalls}",
+              style: const TextStyle(color: Colors.white70),
+            ),
+          ],
+        ),
+      );
+    },
+  ),
+),
