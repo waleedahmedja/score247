@@ -1,3 +1,4 @@
+// main.dart
 import 'package:flutter/material.dart';
 import 'screens/setup_screen.dart';
 
