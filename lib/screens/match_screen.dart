@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import '../models/player.dart';
+import '../models/partnership.dart';
 
 class MatchScreen extends StatefulWidget {
-  final int playersPerTeam;
-  final String overs;
-  final String tossWinner;
+  final String team1Name;
+  final String team2Name;
+  final List<String> team1Players;
+  final List<String> team2Players;
 
   const MatchScreen({
     super.key,
-    required this.playersPerTeam,
-    required this.overs,
-    required this.tossWinner,
+    required this.team1Name,
+    required this.team2Name,
+    required this.team1Players,
+    required this.team2Players,
   });
 
   @override
@@ -17,208 +21,223 @@ class MatchScreen extends StatefulWidget {
 }
 
 class _MatchScreenState extends State<MatchScreen> {
-  int team1Runs = 0;
-  int team1Wickets = 0;
-  int team1Balls = 0;
-
-  int team2Runs = 0;
-  int team2Wickets = 0;
-  int team2Balls = 0;
+  // Match state
+  late List<Player> team1;
+  late List<Player> team2;
 
   bool isTeam1Batting = true;
-  late int totalBalls;
+  int strikerIndex = 0;
+  int nonStrikerIndex = 1;
+  int currentBowlerIndex = 0;
+
+  int totalBalls = 0; // Total balls bowled in the innings
+  int runsScored = 0;
+  int wicketsLost = 0;
+
+  Partnership partnership = Partnership();
 
   @override
   void initState() {
     super.initState();
-    totalBalls = widget.overs == "Unlimited" ? 9999 : int.parse(widget.overs) * 6;
+    // Initialize teams with player names
+    team1 = widget.team1Players.map((name) => Player(name: name)).toList();
+    team2 = widget.team2Players.map((name) => Player(name: name)).toList();
   }
 
-  void updateScore(int runs, {bool isWicket = false, bool isExtraBall = false}) {
+  // Update score when a run is scored
+  void scoreRun(int runs) {
     setState(() {
-      if (isTeam1Batting) {
-        if (isWicket) {
-          team1Wickets++;
-        } else {
-          team1Runs += runs;
-        }
-        if (!isExtraBall) team1Balls++;
-      } else {
-        if (isWicket) {
-          team2Wickets++;
-        } else {
-          team2Runs += runs;
-        }
-        if (!isExtraBall) team2Balls++;
-      }
+      runsScored += runs;
+      totalBalls++;
 
+      // Update batsman's stats
+      team1[strikerIndex].runs += runs;
+      team1[strikerIndex].ballsFaced++;
+      if (runs == 4) team1[strikerIndex].fours++;
+      if (runs == 6) team1[strikerIndex].sixes++;
+
+      // Update partnership stats
+      partnership.runs += runs;
+      partnership.balls++;
+
+      // Rotate strike for odd runs
+      if (runs % 2 != 0) {
+        rotateStrike();
+      }
       checkInningsEnd();
     });
   }
 
-  void checkInningsEnd() {
-    final currentBalls = isTeam1Batting ? team1Balls : team2Balls;
-    final currentWickets = isTeam1Batting ? team1Wickets : team2Wickets;
+  // Handle a wicket
+  void loseWicket() {
+    setState(() {
+      wicketsLost++;
+      totalBalls++;
+      partnership = Partnership(); // Reset partnership for new batsman
 
-    if (currentBalls >= totalBalls || currentWickets >= widget.playersPerTeam - 1) {
-      if (isTeam1Batting) {
-        setState(() {
-          isTeam1Batting = false;
-        });
+      // Advance to next batsman
+      if (wicketsLost < team1.length - 1) {
+        strikerIndex = wicketsLost + 1;
       } else {
-        showMatchSummary();
+        checkInningsEnd();
       }
+    });
+  }
+
+  // Rotate strike between batsmen
+  void rotateStrike() {
+    setState(() {
+      final temp = strikerIndex;
+      strikerIndex = nonStrikerIndex;
+      nonStrikerIndex = temp;
+    });
+  }
+
+  // Check if innings should end
+  void checkInningsEnd() {
+    if (wicketsLost == team1.length - 1 || totalBalls == 120) {
+      // Switch innings
+      setState(() {
+        isTeam1Batting = !isTeam1Batting;
+        totalBalls = 0;
+        runsScored = 0;
+        wicketsLost = 0;
+        partnership = Partnership();
+      });
     }
   }
 
-  void showMatchSummary() {
-    String result;
-    if (team1Runs > team2Runs) {
-      result = "Team 1 wins by ${team1Runs - team2Runs} runs!";
-    } else if (team2Runs > team1Runs) {
-      result = "Team 2 wins by ${widget.playersPerTeam - 1 - team2Wickets} wickets!";
-    } else {
-      result = "It's a tie!";
-    }
+  @override
+  Widget build(BuildContext context) {
+    final currentTeam = isTeam1Batting ? team1 : team2;
 
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Match Summary"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("Team 1: $team1Runs/$team1Wickets"),
-            Text("Team 2: $team2Runs/$team2Wickets"),
-            const SizedBox(height: 20),
-            Text(result),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context); // Go back to setup screen
-            },
-            child: const Text("Back to Setup"),
+    return Scaffold(
+      backgroundColor: Colors.grey[900],
+      appBar: AppBar(
+        title: Text(isTeam1Batting ? widget.team1Name : widget.team2Name),
+        backgroundColor: Colors.blueAccent,
+      ),
+      body: Column(
+        children: [
+          // Scorecard
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Card(
+              color: Colors.grey[800],
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 5,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Score: $runsScored/$wicketsLost",
+                      style: const TextStyle(color: Colors.white, fontSize: 24),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      "Overs: ${totalBalls ~/ 6}.${totalBalls % 6}",
+                      style: const TextStyle(color: Colors.white70, fontSize: 18),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Partnership stats
+          Card(
+            color: Colors.grey[800],
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            elevation: 5,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Current Partnership",
+                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Runs: ${partnership.runs}, Balls: ${partnership.balls}",
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  Text(
+                    "Run Rate: ${partnership.runRate.toStringAsFixed(2)}",
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Control buttons
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              buildScoreButton("One", 1),
+              buildScoreButton("Two", 2),
+              buildScoreButton("Three", 3),
+              buildScoreButton("Four", 4),
+              buildScoreButton("Six", 6),
+              ElevatedButton(
+                onPressed: loseWicket,
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text("Wicket"),
+              ),
+              ElevatedButton(
+                onPressed: rotateStrike,
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                child: const Text("Rotate Strike"),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Player stats
+          Expanded(
+            child: ListView.builder(
+              itemCount: currentTeam.length,
+              itemBuilder: (context, index) {
+                final player = currentTeam[index];
+                return ListTile(
+                  title: Text(
+                    player.name,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  subtitle: Text(
+                    "Runs: ${player.runs}, Balls: ${player.ballsFaced}, Strike Rate: ${player.strikeRate.toStringAsFixed(2)}",
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  trailing: Text(
+                    "Fours: ${player.fours}, Sixes: ${player.sixes}",
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
     );
   }
 
-  void nextInnings() {
-    setState(() {
-      isTeam1Batting = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final currentRuns = isTeam1Batting ? team1Runs : team2Runs;
-    final currentWickets = isTeam1Batting ? team1Wickets : team2Wickets;
-    final currentBalls = isTeam1Batting ? team1Balls : team2Balls;
-
-    return Scaffold(
-      backgroundColor: Colors.grey[900],
-      appBar: AppBar(
-        title: Text(isTeam1Batting ? "Team 1 Batting" : "Team 2 Batting"),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Scorecard Display
-            Card(
-              color: Colors.grey[800],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              elevation: 5,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    Text(
-                      "$currentRuns/$currentWickets",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Overs: ${currentBalls ~/ 6}.${currentBalls % 6}",
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Buttons for Scoring
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 3,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                children: [
-                  buildScoreButton("One", 1, Colors.green),
-                  buildScoreButton("Two", 2, Colors.teal),
-                  buildScoreButton("Three", 3, Colors.orange),
-                  buildScoreButton("Four", 4, Colors.blue),
-                  buildScoreButton("Six", 6, Colors.purple),
-                  buildScoreButton("Wicket", 0, Colors.red, isWicket: true),
-                  buildScoreButton("Wide", 1, Colors.yellow, isExtraBall: true),
-                  buildScoreButton("No Ball", 1, Colors.amber, isExtraBall: true),
-                  buildScoreButton("Ball Again", 0, Colors.brown, isExtraBall: true),
-                ],
-              ),
-            ),
-
-            // Next Innings or Finish Match
-            if (isTeam1Batting)
-              ElevatedButton(
-                onPressed: nextInnings,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text(
-                  "Next Innings",
-                  style: TextStyle(fontSize: 18),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Build Button Widget for Scoring
-  Widget buildScoreButton(String label, int runs, Color color,
-      {bool isWicket = false, bool isExtraBall = false}) {
+  // Build control button
+  Widget buildScoreButton(String label, int runs) {
     return ElevatedButton(
-      onPressed: () => updateScore(runs, isWicket: isWicket, isExtraBall: isExtraBall),
+      onPressed: () => scoreRun(runs),
       style: ElevatedButton.styleFrom(
-        backgroundColor: color,
+        backgroundColor: Colors.green,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        padding: const EdgeInsets.all(12),
       ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      child: Text(label),
     );
   }
 }
