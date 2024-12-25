@@ -357,3 +357,71 @@ class _MatchScreenState extends State<MatchScreen> {
     );
   }
 }
+Expanded(
+  child: ListView.builder(
+    itemCount: battingTeam.length,
+    itemBuilder: (context, index) {
+      final player = battingTeam[index];
+      return ListTile(
+        title: Text(
+          player.name,
+          style: const TextStyle(color: Colors.white),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Runs: ${player.runs}, Balls: ${player.ballsFaced}, Strike Rate: ${player.strikeRate.toStringAsFixed(2)}",
+              style: const TextStyle(color: Colors.white70),
+            ),
+            Text(
+              "Fours: ${player.fours}, Sixes: ${player.sixes}, Dot Balls: ${player.dotBalls}",
+              style: const TextStyle(color: Colors.white70),
+            ),
+          ],
+        ),
+      );
+    },
+  ),
+),
+List<String> matchEvents = [];
+
+void addMatchEvent(String event) {
+  setState(() {
+    matchEvents.add(event);
+  });
+}
+void scoreRun(int runs) {
+  setState(() {
+    runsScored += runs;
+    addMatchEvent("Player ${striker.name} scored $runs runs.");
+  });
+}
+Expanded(
+  child: ListView.builder(
+    itemCount: matchEvents.length,
+    itemBuilder: (context, index) {
+      return ListTile(
+        title: Text(
+          matchEvents[index],
+          style: const TextStyle(color: Colors.white),
+        ),
+      );
+    },
+  ),
+),
+List<String> actionHistory = [];
+
+void undoLastAction() {
+  if (actionHistory.isNotEmpty) {
+    final lastAction = actionHistory.removeLast();
+    // Revert the last action (e.g., subtract runs, restore wicket, etc.)
+    setState(() {
+      // Undo logic here
+    });
+  }
+}
+ElevatedButton(
+  onPressed: undoLastAction,
+  child: const Text("Undo Last Action"),
+),
