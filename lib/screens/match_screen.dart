@@ -40,8 +40,10 @@ class _MatchScreenState extends State<MatchScreen> {
   void initState() {
     super.initState();
     // Initialize teams with player names
-    final team1 = widget.team1Players.map((name) => Player(name: name)).toList();
-    final team2 = widget.team2Players.map((name) => Player(name: name)).toList();
+    final team1 =
+        widget.team1Players.map((name) => Player(name: name)).toList();
+    final team2 =
+        widget.team2Players.map((name) => Player(name: name)).toList();
 
     battingTeam = team1;
     bowlingTeam = team2;
@@ -54,23 +56,24 @@ class _MatchScreenState extends State<MatchScreen> {
       totalBalls++;
 
       // Update batsman's stats
-      battingTeam[strikerIndex].runs += runs;
-      battingTeam[strikerIndex].ballsFaced++;
-      if (runs == 4) battingTeam[strikerIndex].fours++;
-      if (runs == 6) battingTeam[strikerIndex].sixes++;
+      final striker = battingTeam[strikerIndex];
+      striker.runs += runs;
+      striker.ballsFaced++;
+      if (runs == 0) {
+        striker.dotBalls++;
+      } else if (runs == 4) {
+        striker.fours++;
+      } else if (runs == 6) {
+        striker.sixes++;
+      }
 
-      // Update bowler's stats
-      bowlingTeam[currentBowlerIndex].runsConceded += runs;
-      bowlingTeam[currentBowlerIndex].ballsBowled++;
-
-      // Update partnership stats
-      partnership.runs += runs;
-      partnership.balls++;
+      // Update bowler stats
+      final bowler = bowlingTeam[currentBowlerIndex];
+      bowler.runsConceded += runs;
+      bowler.ballsBowled++;
 
       // Rotate strike for odd runs
-      if (runs % 2 != 0) {
-        rotateStrike();
-      }
+      if (runs % 2 != 0) rotateStrike();
 
       checkOverEnd();
       checkInningsEnd();
@@ -147,8 +150,12 @@ class _MatchScreenState extends State<MatchScreen> {
       // Switch innings
       setState(() {
         isTeam1Batting = !isTeam1Batting;
-        battingTeam = isTeam1Batting ? widget.team1Players.map((name) => Player(name: name)).toList() : widget.team2Players.map((name) => Player(name: name)).toList();
-        bowlingTeam = isTeam1Batting ? widget.team2Players.map((name) => Player(name: name)).toList() : widget.team1Players.map((name) => Player(name: name)).toList();
+        battingTeam = isTeam1Batting
+            ? widget.team1Players.map((name) => Player(name: name)).toList()
+            : widget.team2Players.map((name) => Player(name: name)).toList();
+        bowlingTeam = isTeam1Batting
+            ? widget.team2Players.map((name) => Player(name: name)).toList()
+            : widget.team1Players.map((name) => Player(name: name)).toList();
         totalBalls = 0;
         runsScored = 0;
         wicketsLost = 0;
@@ -172,7 +179,8 @@ class _MatchScreenState extends State<MatchScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Card(
               color: Colors.grey[800],
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
               elevation: 5,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -186,7 +194,8 @@ class _MatchScreenState extends State<MatchScreen> {
                     const SizedBox(height: 10),
                     Text(
                       "Overs: ${totalBalls ~/ 6}.${totalBalls % 6}",
-                      style: const TextStyle(color: Colors.white70, fontSize: 18),
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 18),
                     ),
                   ],
                 ),
@@ -197,7 +206,8 @@ class _MatchScreenState extends State<MatchScreen> {
           // Current Bowler Stats
           Card(
             color: Colors.grey[800],
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             elevation: 5,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
