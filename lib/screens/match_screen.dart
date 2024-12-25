@@ -22,8 +22,8 @@ class MatchScreen extends StatefulWidget {
 
 class _MatchScreenState extends State<MatchScreen> {
   // Match state
-  late List<Player> team1;
-  late List<Player> team2;
+  late List<Player> battingTeam;
+  late List<Player> bowlingTeam;
 
   bool isTeam1Batting = true;
   int strikerIndex = 0;
@@ -40,21 +40,28 @@ class _MatchScreenState extends State<MatchScreen> {
   void initState() {
     super.initState();
     // Initialize teams with player names
-    team1 = widget.team1Players.map((name) => Player(name: name)).toList();
-    team2 = widget.team2Players.map((name) => Player(name: name)).toList();
+    final team1 = widget.team1Players.map((name) => Player(name: name)).toList();
+    final team2 = widget.team2Players.map((name) => Player(name: name)).toList();
+
+    battingTeam = team1;
+    bowlingTeam = team2;
   }
 
-  // Update score when a run is scored
+  // Update score and bowler stats
   void scoreRun(int runs) {
     setState(() {
       runsScored += runs;
       totalBalls++;
 
       // Update batsman's stats
-      team1[strikerIndex].runs += runs;
-      team1[strikerIndex].ballsFaced++;
-      if (runs == 4) team1[strikerIndex].fours++;
-      if (runs == 6) team1[strikerIndex].sixes++;
+      battingTeam[strikerIndex].runs += runs;
+      battingTeam[strikerIndex].ballsFaced++;
+      if (runs == 4) battingTeam[strikerIndex].fours++;
+      if (runs == 6) battingTeam[strikerIndex].sixes++;
+
+      // Update bowler's stats
+      bowlingTeam[currentBowlerIndex].runsConceded += runs;
+      bowlingTeam[currentBowlerIndex].ballsBowled++;
 
       // Update partnership stats
       partnership.runs += runs;
@@ -64,6 +71,8 @@ class _MatchScreenState extends State<MatchScreen> {
       if (runs % 2 != 0) {
         rotateStrike();
       }
+
+      checkOverEnd();
       checkInningsEnd();
     });
   }
@@ -75,12 +84,17 @@ class _MatchScreenState extends State<MatchScreen> {
       totalBalls++;
       partnership = Partnership(); // Reset partnership for new batsman
 
+      // Update bowler's stats
+      bowlingTeam[currentBowlerIndex].wickets++;
+
       // Advance to next batsman
-      if (wicketsLost < team1.length - 1) {
+      if (wicketsLost < battingTeam.length - 1) {
         strikerIndex = wicketsLost + 1;
       } else {
         checkInningsEnd();
       }
+
+      checkOverEnd();
     });
   }
 
@@ -93,12 +107,48 @@ class _MatchScreenState extends State<MatchScreen> {
     });
   }
 
+  // Check if an over has ended
+  void checkOverEnd() {
+    if (totalBalls % 6 == 0) {
+      // Over ended, allow bowler selection
+      selectNewBowler();
+    }
+  }
+
+  // Select a new bowler
+  void selectNewBowler() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return ListView.builder(
+          itemCount: bowlingTeam.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text(
+                bowlingTeam[index].name,
+                style: const TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                setState(() {
+                  currentBowlerIndex = index;
+                });
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   // Check if innings should end
   void checkInningsEnd() {
-    if (wicketsLost == team1.length - 1 || totalBalls == 120) {
+    if (wicketsLost == battingTeam.length - 1 || totalBalls == 120) {
       // Switch innings
       setState(() {
         isTeam1Batting = !isTeam1Batting;
+        battingTeam = isTeam1Batting ? widget.team1Players.map((name) => Player(name: name)).toList() : widget.team2Players.map((name) => Player(name: name)).toList();
+        bowlingTeam = isTeam1Batting ? widget.team2Players.map((name) => Player(name: name)).toList() : widget.team1Players.map((name) => Player(name: name)).toList();
         totalBalls = 0;
         runsScored = 0;
         wicketsLost = 0;
@@ -109,8 +159,6 @@ class _MatchScreenState extends State<MatchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTeam = isTeam1Batting ? team1 : team2;
-
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
@@ -146,7 +194,7 @@ class _MatchScreenState extends State<MatchScreen> {
             ),
           ),
 
-          // Partnership stats
+          // Current Bowler Stats
           Card(
             color: Colors.grey[800],
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -157,16 +205,28 @@ class _MatchScreenState extends State<MatchScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Current Partnership",
+                    "Current Bowler",
                     style: TextStyle(color: Colors.white, fontSize: 20),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    "Runs: ${partnership.runs}, Balls: ${partnership.balls}",
+                    "Name: ${bowlingTeam[currentBowlerIndex].name}",
                     style: const TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                   Text(
-                    "Run Rate: ${partnership.runRate.toStringAsFixed(2)}",
+                    "Overs: ${bowlingTeam[currentBowlerIndex].ballsBowled ~/ 6}.${bowlingTeam[currentBowlerIndex].ballsBowled % 6}",
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  Text(
+                    "Runs Conceded: ${bowlingTeam[currentBowlerIndex].runsConceded}",
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  Text(
+                    "Wickets: ${bowlingTeam[currentBowlerIndex].wickets}",
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  Text(
+                    "Economy: ${bowlingTeam[currentBowlerIndex].economyRate.toStringAsFixed(2)}",
                     style: const TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                 ],
@@ -191,38 +251,7 @@ class _MatchScreenState extends State<MatchScreen> {
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 child: const Text("Wicket"),
               ),
-              ElevatedButton(
-                onPressed: rotateStrike,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                child: const Text("Rotate Strike"),
-              ),
             ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // Player stats
-          Expanded(
-            child: ListView.builder(
-              itemCount: currentTeam.length,
-              itemBuilder: (context, index) {
-                final player = currentTeam[index];
-                return ListTile(
-                  title: Text(
-                    player.name,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  subtitle: Text(
-                    "Runs: ${player.runs}, Balls: ${player.ballsFaced}, Strike Rate: ${player.strikeRate.toStringAsFixed(2)}",
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                  trailing: Text(
-                    "Fours: ${player.fours}, Sixes: ${player.sixes}",
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                );
-              },
-            ),
           ),
         ],
       ),
