@@ -307,3 +307,53 @@ Expanded(
     },
   ),
 ),
+class MatchScreen extends StatefulWidget {
+  final String team1Name;
+  final String team2Name;
+  final int oversPerMatch;
+
+  const MatchScreen({
+    super.key,
+    required this.team1Name,
+    required this.team2Name,
+    required this.oversPerMatch,
+  });
+
+  @override
+  _MatchScreenState createState() => _MatchScreenState();
+}
+
+class _MatchScreenState extends State<MatchScreen> {
+  void endMatch() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LeaderboardScreen(players: []), // Pass player stats here
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[900],
+      appBar: AppBar(
+        title: Text(widget.team1Name + " vs " + widget.team2Name),
+        backgroundColor: Colors.blueAccent,
+      ),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: endMatch,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          child: const Text(
+            "End Match and View Leaderboard",
+            style: TextStyle(fontSize: 18),
+          ),
+        ),
+      ),
+    );
+  }
+}
