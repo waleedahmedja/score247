@@ -88,8 +88,8 @@ class _MatchScreenState extends State<MatchScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text("Team 1: $team1Runs/${team1Wickets}"),
-            Text("Team 2: $team2Runs/${team2Wickets}"),
+            Text("Team 1: $team1Runs/$team1Wickets"),
+            Text("Team 2: $team2Runs/$team2Wickets"),
             const SizedBox(height: 20),
             Text(result),
           ],
