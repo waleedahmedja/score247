@@ -7,6 +7,7 @@ class Player {
   int wickets = 0;
   int ballsBowled = 0;
   int runsConceded = 0;
+  int dotBalls = 0;
 
   Player({required this.name});
 
