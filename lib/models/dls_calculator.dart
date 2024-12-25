@@ -1,3 +1,4 @@
+// dls_calculator.dart
 class DLSCalculator {
   // Basic resource percentage table
   static const Map<int, double> resourcesTable = {
