@@ -1,3 +1,4 @@
+// partnership.dart
 class Partnership {
   int runs = 0;
   int balls = 0;
