@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'match_screen.dart';
-import 'quick_match_screen.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
