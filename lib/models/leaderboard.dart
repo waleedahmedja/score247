@@ -1,4 +1,5 @@
-class Leaderboard {
+// class leaderboard.dart
+Leaderboard {
   List<Player> players;
 
   Leaderboard(this.players);
