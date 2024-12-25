@@ -202,3 +202,58 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 }
+ElevatedButton(
+  onPressed: () {
+    Navigator.pushNamed(
+      context,
+      '/toss',
+      arguments: {
+        'team1Name': team1Name,
+        'team2Name': team2Name,
+        'oversPerMatch': oversPerMatch,
+      },
+    );
+  },
+  child: const Text("Proceed to Toss"),
+),
+void validateInputs() {
+  if (team1Name.isEmpty || team2Name.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Team names cannot be empty!"),
+      ),
+    );
+  } else {
+    Navigator.pushNamed(context, '/toss', arguments: {
+      'team1Name': team1Name,
+      'team2Name': team2Name,
+      'oversPerMatch': oversPerMatch,
+    });
+  }
+}
+ElevatedButton(
+  onPressed: validateInputs,
+  child: const Text("Proceed to Toss"),
+),
+TextField(
+  onChanged: (value) {
+    setState(() {
+      team1Name = value;
+    });
+  },
+  decoration: InputDecoration(
+    labelText: 'Enter Team 1 Name',
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+  ),
+),
+TextField(
+  onChanged: (value) {
+    setState(() {
+      team2Name = value;
+    });
+  },
+  decoration: InputDecoration(
+    labelText: 'Enter Team 2 Name',
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+  ),
+),
