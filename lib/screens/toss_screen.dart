@@ -100,3 +100,17 @@ class TossScreen extends StatelessWidget {
     );
   }
 }
+ElevatedButton(
+  onPressed: () {
+    Navigator.pushNamed(
+      context,
+      '/match',
+      arguments: {
+        'team1Name': team1Name,
+        'team2Name': team2Name,
+        'oversPerMatch': oversPerMatch,
+      },
+    );
+  },
+  child: const Text("Start Match"),
+),
