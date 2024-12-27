@@ -21,8 +21,6 @@ class Score247App extends StatelessWidget {
     );
   }
 }
-import 'package:flutter/material.dart';
-import 'screens/setup_screen.dart';
 import 'screens/toss_screen.dart';
 import 'screens/match_screen.dart';
 
