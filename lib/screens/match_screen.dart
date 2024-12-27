@@ -282,7 +282,7 @@ class _MatchScreenState extends State<MatchScreen> {
   }
 }
 Expanded(
-  child: ListView.builder(
+  child = ListView.builder(
     itemCount: currentTeam.length,
     itemBuilder: (context, index) {
       final player = currentTeam[index];
@@ -339,7 +339,7 @@ class _MatchScreenState extends State<MatchScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Text(widget.team1Name + " vs " + widget.team2Name),
+        title: Text("${widget.team1Name} vs ${widget.team2Name}"),
         backgroundColor: Colors.blueAccent,
       ),
       body: Center(
@@ -359,7 +359,7 @@ class _MatchScreenState extends State<MatchScreen> {
   }
 }
 Expanded(
-  child: ListView.builder(
+  child = ListView.builder(
     itemCount: battingTeam.length,
     itemBuilder: (context, index) {
       final player = battingTeam[index];
@@ -399,7 +399,7 @@ void scoreRun(int runs) {
   });
 }
 Expanded(
-  child: ListView.builder(
+  child = ListView.builder(
     itemCount: matchEvents.length,
     itemBuilder: (context, index) {
       return ListTile(
@@ -423,6 +423,6 @@ void undoLastAction() {
   }
 }
 ElevatedButton(
-  onPressed: undoLastAction,
-  child: const Text("Undo Last Action"),
+  onPressed = undoLastAction,
+  child = const Text("Undo Last Action"),
 ),
