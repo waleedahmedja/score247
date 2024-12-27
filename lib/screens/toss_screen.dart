@@ -102,7 +102,7 @@ class TossScreen extends StatelessWidget {
   }
 }
 ElevatedButton(
-  onPressed: () {
+  onPressed = () {
     Navigator.pushNamed(
       context,
       '/match',
@@ -113,5 +113,5 @@ ElevatedButton(
       },
     );
   },
-  child: const Text("Start Match"),
+  child = const Text("Start Match"),
 ),
