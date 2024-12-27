@@ -204,7 +204,7 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 }
 ElevatedButton(
-  onPressed: () {
+  onPressed = () {
     Navigator.pushNamed(
       context,
       '/toss',
@@ -215,7 +215,7 @@ ElevatedButton(
       },
     );
   },
-  child: const Text("Proceed to Toss"),
+  child = const Text("Proceed to Toss"),
 ),
 void validateInputs() {
   if (team1Name.isEmpty || team2Name.isEmpty) {
@@ -233,27 +233,27 @@ void validateInputs() {
   }
 }
 ElevatedButton(
-  onPressed: validateInputs,
-  child: const Text("Proceed to Toss"),
+  onPressed = validateInputs,
+  child = const Text("Proceed to Toss"),
 ),
 TextField(
-  onChanged: (value) {
+  onChanged = (value) {
     setState(() {
       team1Name = value;
     });
   },
-  decoration: InputDecoration(
+  decoration = InputDecoration(
     labelText: 'Enter Team 1 Name',
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
   ),
 ),
 TextField(
-  onChanged: (value) {
+  onChanged = (value) {
     setState(() {
       team2Name = value;
     });
   },
-  decoration: InputDecoration(
+  decoration = InputDecoration(
     labelText: 'Enter Team 2 Name',
     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
   ),
