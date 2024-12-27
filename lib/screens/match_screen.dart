@@ -1,7 +1,7 @@
-// match_screen.dart
 import 'package:flutter/material.dart';
 import '../models/player.dart';
 import '../models/partnership.dart';
+import 'leaderboard_screen.dart';
 
 class MatchScreen extends StatefulWidget {
   final String team1Name;
@@ -35,43 +35,35 @@ class _MatchScreenState extends State<MatchScreen> {
   int runsScored = 0;
   int wicketsLost = 0;
 
+  List<String> matchEvents = [];
+  List<String> actionHistory = [];
+
   Partnership partnership = Partnership();
 
   @override
   void initState() {
     super.initState();
-    // Initialize teams with player names
-    final team1 =
-        widget.team1Players.map((name) => Player(name: name)).toList();
-    final team2 =
-        widget.team2Players.map((name) => Player(name: name)).toList();
-
-    battingTeam = team1;
-    bowlingTeam = team2;
+    // Initialize teams
+    battingTeam = widget.team1Players.map((name) => Player(name: name)).toList();
+    bowlingTeam = widget.team2Players.map((name) => Player(name: name)).toList();
   }
 
-  // Update score and bowler stats
+  // Handle scoring
   void scoreRun(int runs) {
     setState(() {
       runsScored += runs;
       totalBalls++;
 
-      // Update batsman's stats
+      // Update striker stats
       final striker = battingTeam[strikerIndex];
-      striker.runs += runs;
-      striker.ballsFaced++;
-      if (runs == 0) {
-        striker.dotBalls++;
-      } else if (runs == 4) {
-        striker.fours++;
-      } else if (runs == 6) {
-        striker.sixes++;
-      }
+      striker.addRuns(runs);
 
       // Update bowler stats
       final bowler = bowlingTeam[currentBowlerIndex];
-      bowler.runsConceded += runs;
-      bowler.ballsBowled++;
+      bowler.addBowlingStats(runs);
+
+      // Add match event
+      addMatchEvent("Player ${striker.name} scored $runs runs.");
 
       // Rotate strike for odd runs
       if (runs % 2 != 0) rotateStrike();
@@ -81,19 +73,19 @@ class _MatchScreenState extends State<MatchScreen> {
     });
   }
 
-  // Handle a wicket
+  // Handle wickets
   void loseWicket() {
     setState(() {
       wicketsLost++;
       totalBalls++;
-      partnership = Partnership(); // Reset partnership for new batsman
 
-      // Update bowler's stats
-      bowlingTeam[currentBowlerIndex].wickets++;
+      final bowler = bowlingTeam[currentBowlerIndex];
+      bowler.addWicket();
 
-      // Advance to next batsman
+      addMatchEvent("Wicket! Player ${battingTeam[strikerIndex].name} is out.");
+
       if (wicketsLost < battingTeam.length - 1) {
-        strikerIndex = wicketsLost + 1;
+        strikerIndex = wicketsLost + 1; // Next batsman
       } else {
         checkInningsEnd();
       }
@@ -102,7 +94,7 @@ class _MatchScreenState extends State<MatchScreen> {
     });
   }
 
-  // Rotate strike between batsmen
+  // Rotate strike
   void rotateStrike() {
     setState(() {
       final temp = strikerIndex;
@@ -111,10 +103,10 @@ class _MatchScreenState extends State<MatchScreen> {
     });
   }
 
-  // Check if an over has ended
+  // Check if over has ended
   void checkOverEnd() {
     if (totalBalls % 6 == 0) {
-      // Over ended, allow bowler selection
+      addMatchEvent("End of the over.");
       selectNewBowler();
     }
   }
@@ -148,6 +140,7 @@ class _MatchScreenState extends State<MatchScreen> {
   // Check if innings should end
   void checkInningsEnd() {
     if (wicketsLost == battingTeam.length - 1 || totalBalls == 120) {
+      addMatchEvent("Innings ended with $runsScored/$wicketsLost.");
       // Switch innings
       setState(() {
         isTeam1Batting = !isTeam1Batting;
@@ -157,10 +150,29 @@ class _MatchScreenState extends State<MatchScreen> {
         bowlingTeam = isTeam1Batting
             ? widget.team2Players.map((name) => Player(name: name)).toList()
             : widget.team1Players.map((name) => Player(name: name)).toList();
+
+        // Reset stats for the new innings
         totalBalls = 0;
         runsScored = 0;
         wicketsLost = 0;
-        partnership = Partnership();
+        partnership.reset();
+      });
+    }
+  }
+
+  // Add match event
+  void addMatchEvent(String event) {
+    setState(() {
+      matchEvents.add(event);
+    });
+  }
+
+  // Undo last action
+  void undoLastAction() {
+    if (actionHistory.isNotEmpty) {
+      setState(() {
+        final lastAction = actionHistory.removeLast();
+        // Logic to undo the action (e.g., subtract runs, restore a wicket, etc.)
       });
     }
   }
@@ -170,87 +182,37 @@ class _MatchScreenState extends State<MatchScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Text(isTeam1Batting ? widget.team1Name : widget.team2Name),
+        title: Text("${widget.team1Name} vs ${widget.team2Name}"),
         backgroundColor: Colors.blueAccent,
       ),
       body: Column(
         children: [
           // Scorecard
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Card(
-              color: Colors.grey[800],
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              elevation: 5,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Score: $runsScored/$wicketsLost",
-                      style: const TextStyle(color: Colors.white, fontSize: 24),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Overs: ${totalBalls ~/ 6}.${totalBalls % 6}",
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 18),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Current Bowler Stats
-          Card(
-            color: Colors.grey[800],
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            elevation: 5,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Current Bowler",
-                    style: TextStyle(color: Colors.white, fontSize: 20),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Name: ${bowlingTeam[currentBowlerIndex].name}",
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                  Text(
-                    "Overs: ${bowlingTeam[currentBowlerIndex].ballsBowled ~/ 6}.${bowlingTeam[currentBowlerIndex].ballsBowled % 6}",
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                  Text(
-                    "Runs Conceded: ${bowlingTeam[currentBowlerIndex].runsConceded}",
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                  Text(
-                    "Wickets: ${bowlingTeam[currentBowlerIndex].wickets}",
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                  Text(
-                    "Economy: ${bowlingTeam[currentBowlerIndex].economyRate.toStringAsFixed(2)}",
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
+          buildScorecard(),
           const SizedBox(height: 20),
 
-          // Control buttons
+          // Bowler Stats
+          buildBowlerStats(),
+          const SizedBox(height: 20),
+
+          // Match Events
+          Expanded(
+            child: ListView.builder(
+              itemCount: matchEvents.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(
+                    matchEvents[index],
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Control Buttons
           Wrap(
             spacing: 8,
-            runSpacing: 8,
             children: [
               buildScoreButton("One", 1),
               buildScoreButton("Two", 2),
@@ -269,7 +231,71 @@ class _MatchScreenState extends State<MatchScreen> {
     );
   }
 
-  // Build control button
+  Widget buildScorecard() {
+    return Card(
+      color: Colors.grey[800],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Score: $runsScored/$wicketsLost",
+              style: const TextStyle(color: Colors.white, fontSize: 24),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Overs: ${totalBalls ~/ 6}.${totalBalls % 6}",
+              style: const TextStyle(color: Colors.white70, fontSize: 18),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildBowlerStats() {
+    final bowler = bowlingTeam[currentBowlerIndex];
+    return Card(
+      color: Colors.grey[800],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Current Bowler",
+              style: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Name: ${bowler.name}",
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+            Text(
+              "Overs: ${bowler.ballsBowled ~/ 6}.${bowler.ballsBowled % 6}",
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+            Text(
+              "Runs Conceded: ${bowler.runsConceded}",
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+            Text(
+              "Wickets: ${bowler.wickets}",
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+            Text(
+              "Economy: ${bowler.economyRate.toStringAsFixed(2)}",
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget buildScoreButton(String label, int runs) {
     return ElevatedButton(
       onPressed: () => scoreRun(runs),
@@ -281,148 +307,3 @@ class _MatchScreenState extends State<MatchScreen> {
     );
   }
 }
-Expanded(
-  child = ListView.builder(
-    itemCount: currentTeam.length,
-    itemBuilder: (context, index) {
-      final player = currentTeam[index];
-      return ListTile(
-        title: Text(
-          player.name,
-          style: const TextStyle(color: Colors.white),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Runs: ${player.runs}, Balls: ${player.ballsFaced}, Strike Rate: ${player.strikeRate.toStringAsFixed(2)}",
-              style: const TextStyle(color: Colors.white70),
-            ),
-            Text(
-              "Fours: ${player.fours}, Sixes: ${player.sixes}, Dot Balls: ${player.dotBalls}",
-              style: const TextStyle(color: Colors.white70),
-            ),
-          ],
-        ),
-      );
-    },
-  ),
-),
-class MatchScreen extends StatefulWidget {
-  final String team1Name;
-  final String team2Name;
-  final int oversPerMatch;
-
-  const MatchScreen({
-    super.key,
-    required this.team1Name,
-    required this.team2Name,
-    required this.oversPerMatch,
-  });
-
-  @override
-  _MatchScreenState createState() => _MatchScreenState();
-}
-
-class _MatchScreenState extends State<MatchScreen> {
-  void endMatch() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => LeaderboardScreen(players: []), // Pass player stats here
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[900],
-      appBar: AppBar(
-        title: Text("${widget.team1Name} vs ${widget.team2Name}"),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: endMatch,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          child: const Text(
-            "End Match and View Leaderboard",
-            style: TextStyle(fontSize: 18),
-          ),
-        ),
-      ),
-    );
-  }
-}
-Expanded(
-  child = ListView.builder(
-    itemCount: battingTeam.length,
-    itemBuilder: (context, index) {
-      final player = battingTeam[index];
-      return ListTile(
-        title: Text(
-          player.name,
-          style: const TextStyle(color: Colors.white),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Runs: ${player.runs}, Balls: ${player.ballsFaced}, Strike Rate: ${player.strikeRate.toStringAsFixed(2)}",
-              style: const TextStyle(color: Colors.white70),
-            ),
-            Text(
-              "Fours: ${player.fours}, Sixes: ${player.sixes}, Dot Balls: ${player.dotBalls}",
-              style: const TextStyle(color: Colors.white70),
-            ),
-          ],
-        ),
-      );
-    },
-  ),
-),
-List<String> matchEvents = [];
-
-void addMatchEvent(String event) {
-  setState(() {
-    matchEvents.add(event);
-  });
-}
-void scoreRun(int runs) {
-  setState(() {
-    runsScored += runs;
-    addMatchEvent("Player ${striker.name} scored $runs runs.");
-  });
-}
-Expanded(
-  child = ListView.builder(
-    itemCount: matchEvents.length,
-    itemBuilder: (context, index) {
-      return ListTile(
-        title: Text(
-          matchEvents[index],
-          style: const TextStyle(color: Colors.white),
-        ),
-      );
-    },
-  ),
-),
-List<String> actionHistory = [];
-
-void undoLastAction() {
-  if (actionHistory.isNotEmpty) {
-    final lastAction = actionHistory.removeLast();
-    // Revert the last action (e.g., subtract runs, restore wicket, etc.)
-    setState(() {
-      // Undo logic here
-    });
-  }
-}
-ElevatedButton(
-  onPressed = undoLastAction,
-  child = const Text("Undo Last Action"),
-),
