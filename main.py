@@ -1,9 +1,3 @@
-"""
-Score247 - Gully Cricket Scorecard
-Complete, corrected, production-ready version
-All requirements implemented with zero duplicates
-"""
-
 import copy
 from dataclasses import dataclass, field, asdict
 from typing import List, Optional
@@ -1235,3 +1229,4 @@ class Score247App(App):
 
 if __name__ == '__main__':
     Score247App().run()
+
