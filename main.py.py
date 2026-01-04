@@ -1,82 +1,3 @@
-"""
-Gully Cricket Scorecard - Complete Production Version (QA Certified)
-
-✅ ALL FIXES APPLIED AND QA REVIEWED
-=====================================
-
-QA CERTIFICATION SUMMARY:
--------------------------
-
-1. WICKET LOGIC - FULLY CLARIFIED ✓
-   Last Man Can Play = False:
-   - Innings ends at (players - 1) wickets
-   - Example: 6 players → ends at 5 wickets
-   
-   Last Man Can Play = True:
-   - Solo batting begins at (players - 1) wickets
-   - Innings ends at (players) wickets
-   - Example: 6 players → solo at 5, ends at 6
-   
-   Source of Truth: get_max_wickets_for_innings_end()
-
-2. NO-BALL WICKET RULES - DOCUMENTED ✓
-   Real Cricket: Only run-outs legal on no-balls
-   This Implementation: All wickets allowed for gully cricket simplicity
-   - Documented in process_delivery()
-   - Can be changed to strict mode by uncommenting check
-   - Wide balls: wickets not expected (run-outs only in real cricket)
-
-3. UNDO + RESUME SAFETY - ENFORCED ✓
-   Safe:
-   - Undo within same innings after resume ✓
-   - Undo stack capped at 50 to prevent memory issues ✓
-   
-   Protected:
-   - Cannot undo across innings (stack cleared at break) ✓
-   - Cannot undo after app restart (stack not persisted) ✓
-   - User informed when undo unavailable ✓
-
-4. BOWLING STATS - DECISION ENFORCED ✓
-   Per-Match Cumulative:
-   - Wickets, runs conceded, balls bowled are cumulative across both innings
-   - Matches real cricket scoring (e.g., "Bowler: 3/45 in 8 overs")
-   - NOT reset at innings break
-   - Documented in PlayerStats class
-
-5. ACCIDENTAL TERMINATION - PROTECTED ✓
-   - END button requires confirmation dialog
-   - Clear warning: "This cannot be undone"
-   - Two-step process prevents fat-finger errors
-
-6. INNINGS DATA PERSISTENCE - CORRECT ✓
-   - Complete InningsData stored for both innings
-   - No approximations or "target - 1" hacks
-   - Real data used in results and stats
-
-7. EXTRAS COMPLETENESS - IMPLEMENTED ✓
-   - Wide + runs: popup input
-   - No-ball + runs: popup input
-   - All stats correctly updated
-
-EDGE CASES HANDLED:
--------------------
-- RRR when balls remaining = 0
-- Ball history capped at 100
-- Solo batting state tracked and displayed
-- Match state clarity (resumed vs new)
-- Cross-innings state corruption prevented
-
-DISPUTE PREVENTION:
--------------------
-- Rules summary shown before match
-- Rules viewable during match
-- Player of match with transparent formula
-- Confirmation for destructive actions
-- Clear innings indicators
-
-For production use in real gully cricket matches.
-"""
-
 import copy
 from dataclasses import dataclass, field, asdict
 from typing import List, Optional
@@ -99,14 +20,7 @@ import random
 
 @dataclass
 class PlayerStats:
-    """
-    Individual player statistics
-    
-    QA DECISION: Bowling stats are PER-MATCH (cumulative across both innings)
-    - A bowler's wickets/economy reflect their entire match performance
-    - This matches real cricket scorecards (e.g., "Bowler: 3-45 in 8 overs")
-    - Batting stats are always per-innings (batsman can't bat in both innings)
-    """
+    """Individual player statistics"""
     name: str = "Player"
     runs: int = 0
     balls_faced: int = 0
@@ -123,7 +37,6 @@ class PlayerStats:
         overs = self.legal_balls_bowled / 6
         return (self.runs_conceded / overs) if overs > 0 else 0.0
 
-# 🆕 FIX 2: Innings data persistence
 @dataclass
 class InningsData:
     """Store complete innings data - no approximations"""
@@ -151,7 +64,6 @@ class MatchState:
     current_innings: int = 1
     target: Optional[int] = None
     
-    # 🆕 FIX 2: Store actual innings data
     innings1_data: Optional[InningsData] = None
     innings2_data: Optional[InningsData] = None
     
@@ -187,7 +99,6 @@ class MatchManager:
         self.bowling_team_name = ""
         self.toss_winner = ""
         
-        # 🆕 FIX 6: Track if match is resumed
         self.is_resumed = False
         
         self.state = MatchState()
@@ -205,12 +116,11 @@ class MatchManager:
         return (self.state.team2_stats if self.batting_team_name == self.team1_name 
                 else self.state.team1_stats)
     
-    # 🆕 FIX 5: Get rules summary as text
     def get_rules_summary(self) -> str:
         """
         Return formatted rules summary
         
-        QA NOTE: This displays user-configurable rules.
+        This displays user-configurable rules.
         Wicket legality on no-balls is handled separately in code (see process_delivery)
         """
         lines = [
@@ -232,13 +142,12 @@ class MatchManager:
     
     def save_snapshot(self):
         self.undo_stack.append(copy.deepcopy(self.state))
-        # 🆕 FIX 7: Cap undo stack to prevent memory growth
         if len(self.undo_stack) > 50:
             self.undo_stack.pop(0)
     
     def undo(self) -> bool:
         """
-        QA SAFETY: Undo restrictions to prevent corruption
+        Undo restrictions to prevent corruption
         
         RULES:
         1. Cannot undo after innings break (undo_stack cleared at break)
@@ -251,7 +160,6 @@ class MatchManager:
             return True
         return False
     
-    # 🆕 FIX 1: Check if only one batsman remains (last man standing)
     def is_solo_batting(self) -> bool:
         """
         Returns True if only one batsman can bat (last man scenario)
@@ -275,7 +183,7 @@ class MatchManager:
         """
         Returns the wicket count at which innings MUST end
         
-        QA CRITICAL: This is the source of truth for all-out conditions
+        This is the source of truth for all-out conditions
         - Normal rules: (players - 1) wickets = all out
         - Last man can play: (players) wickets = all out
         """
@@ -289,7 +197,7 @@ class MatchManager:
         """
         Process a single delivery with full rule compliance
         
-        QA CRITICAL RULES:
+        CRITICAL RULES:
         1. NO-BALL WICKETS: Only run-outs are legal on no-balls
            - This implementation treats is_wicket as "any dismissal"
            - In real cricket, bowled/caught/LBW illegal on no-ball
@@ -304,7 +212,6 @@ class MatchManager:
         """
         self.save_snapshot()
         
-        # QA FIX: Check if wicket is legal in current state
         if is_wicket:
             # If already in solo batting, this wicket ends the innings
             if self.is_solo_batting():
@@ -316,9 +223,6 @@ class MatchManager:
                 self.persist_to_disk()
                 return  # Innings over, no further processing
             
-            # QA DOCUMENTATION: On no-ball, technically only run-out is legal
-            # For gully cricket, we're allowing all wickets for simplicity
-            # If strict rules needed, add: if is_noball and is_wicket: is_wicket = False
         
         # Calculate runs
         extra_runs = 0
@@ -373,7 +277,7 @@ class MatchManager:
             if next_idx < len(bat_stats):
                 self.state.striker_idx = next_idx
         
-        # QA FIX: Strike rotation - check current state after wicket processing
+        # Strike rotation - check current state after wicket processing
         solo = self.is_solo_batting()
         
         if not is_wicket and not solo and runs_scored % 2 != 0:
@@ -385,7 +289,7 @@ class MatchManager:
             self.state.striker_idx, self.state.non_striker_idx = \
                 self.state.non_striker_idx, self.state.striker_idx
         
-        # Ball history - 🆕 FIX 7: Cap history size
+        # Ball history 
         if is_wicket:
             hist = "W"
         elif is_wide:
@@ -397,7 +301,6 @@ class MatchManager:
         
         self.state.ball_history.append(hist)
         
-        # 🆕 FIX 7: Keep only last 100 balls to prevent memory issues
         if len(self.state.ball_history) > 100:
             self.state.ball_history = self.state.ball_history[-100:]
         
@@ -408,7 +311,6 @@ class MatchManager:
         self.persist_to_disk()
     
     def persist_to_disk(self):
-        # 🆕 FIX 2: Serialize innings data properly
         innings1_dict = None
         innings2_dict = None
         
@@ -479,7 +381,6 @@ class MatchManager:
             
             st = data['state']
             
-            # 🆕 FIX 2: Load innings data properly
             innings1_data = None
             innings2_data = None
             
@@ -506,7 +407,6 @@ class MatchManager:
             self.state.team1_stats = [PlayerStats(**p) for p in st['team1_stats']]
             self.state.team2_stats = [PlayerStats(**p) for p in st['team2_stats']]
             
-            # 🆕 FIX 6: Mark as resumed
             self.is_resumed = True
             
             return True
@@ -551,7 +451,6 @@ class HomeScreen(Screen):
     
     def resume_match(self, instance):
         if mgr.load_from_disk():
-            # 🆕 FIX 6: Show resume confirmation
             Popup(title='Match Resumed',
                  content=Label(text=f'Continuing saved match\nInnings {mgr.state.current_innings}'),
                  size_hint=(0.7, 0.3), auto_dismiss=True).open()
@@ -757,10 +656,8 @@ class TossScreen(Screen):
             mgr.batting_team_name = (mgr.team2_name if self.winner == mgr.team1_name 
                                     else mgr.team1_name)
         
-        # 🆕 FIX 5: Show rules summary before match starts
         self.manager.current = 'rules_summary'
 
-# 🆕 FIX 5: Rules Summary Screen
 class RulesSummaryScreen(Screen):
     def on_enter(self):
         self.clear_widgets()
@@ -826,7 +723,6 @@ class ScoringScreen(Screen):
         
         layout.add_widget(runs_grid)
         
-        # 🆕 FIX 3: Extras with runs input
         extras_box = BoxLayout(spacing=5, size_hint_y=0.11)
         
         btn_wd = Button(text='WIDE', background_color=(0.8, 0.6, 0.2, 1))
@@ -848,7 +744,6 @@ class ScoringScreen(Screen):
         btn_bowler = Button(text='BOWLER', background_color=(0.4, 0.6, 0.5, 1), font_size='16sp')
         btn_bowler.bind(on_press=self.change_bowler)
         
-        # 🆕 FIX 5: View rules button
         btn_rules = Button(text='RULES', background_color=(0.5, 0.5, 0.6, 1), font_size='16sp')
         btn_rules.bind(on_press=self.show_rules)
         
@@ -876,7 +771,6 @@ class ScoringScreen(Screen):
         self.update_display()
         self.check_auto_end()
     
-    # 🆕 FIX 3: Handle wide with additional runs
     def handle_wide(self, instance):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         content.add_widget(Label(text='Runs from wide (batsman):', size_hint_y=0.3))
@@ -910,7 +804,6 @@ class ScoringScreen(Screen):
         btn_cancel.bind(on_press=popup.dismiss)
         popup.open()
     
-    # 🆕 FIX 3: Handle no-ball with additional runs
     def handle_noball(self, instance):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         content.add_widget(Label(text='Runs scored (by batsman):', size_hint_y=0.3))
@@ -945,9 +838,7 @@ class ScoringScreen(Screen):
         popup.open()
     
     def do_undo(self, instance):
-        """
-        QA SAFETY: Safe undo with user feedback
-        """
+
         if not mgr.undo_stack:
             Popup(title='Cannot Undo',
                  content=Label(text='No actions to undo.\n\nNote: Undo cleared after innings break.'),
@@ -986,7 +877,6 @@ class ScoringScreen(Screen):
         popup.dismiss()
         self.update_display()
     
-    # 🆕 FIX 5: Show rules during match
     def show_rules(self, instance):
         content = BoxLayout(orientation='vertical', padding=10, spacing=10)
         
@@ -1014,7 +904,6 @@ class ScoringScreen(Screen):
         if s.target:
             need = s.target - s.score
             rem_balls = (mgr.overs * 6) - s.legal_balls
-            # 🆕 FIX 7: Handle RRR when balls = 0
             if rem_balls > 0:
                 rrr = (need / (rem_balls / 6))
                 info += f" | Need {need} in {rem_balls} (RRR: {rrr:.2f})"
@@ -1029,7 +918,6 @@ class ScoringScreen(Screen):
         
         striker = bat_stats[s.striker_idx]
         
-        # 🆕 FIX 1: Handle solo batting display
         if mgr.is_solo_batting():
             self.players_lbl.text = (f"Bat: {striker.name}* ({striker.runs}) [SOLO] | "
                                     f"Bowl: {bowl_stats[s.bowler_idx].name}")
@@ -1044,12 +932,8 @@ class ScoringScreen(Screen):
         self.history_lbl.text = f"Recent:\n{hist}"
     
     def check_auto_end(self):
-        """
-        QA CRITICAL: Auto-end conditions with correct wicket logic
-        """
         s = mgr.state
         
-        # QA FIX: Use centralized wicket limit
         max_wickets = mgr.get_max_wickets_for_innings_end()
         
         # Check all-out condition
@@ -1067,9 +951,7 @@ class ScoringScreen(Screen):
             self.manager.current = 'result'
     
     def end_innings_manual(self, instance):
-        """
-        QA FIX: Add confirmation to prevent accidental innings termination
-        """
+
         content = BoxLayout(orientation='vertical', padding=15, spacing=10)
         
         content.add_widget(Label(
@@ -1101,13 +983,9 @@ class ScoringScreen(Screen):
         self.handle_innings_break()
     
     def handle_innings_break(self):
-        """
-        QA CRITICAL: Safe innings transition with state protection
-        """
         s = mgr.state
         
         if s.current_innings == 1:
-            # 🆕 FIX 2: Save innings 1 data properly
             mgr.state.innings1_data = InningsData(
                 score=s.score,
                 wickets=s.wickets,
@@ -1115,7 +993,7 @@ class ScoringScreen(Screen):
                 extras=s.extras
             )
             
-            # QA FIX: Clear undo stack to prevent cross-innings corruption
+            # Clear undo stack to prevent cross-innings corruption
             # This ensures no undo can go back to innings 1 from innings 2
             mgr.undo_stack = []
             
@@ -1132,7 +1010,7 @@ class ScoringScreen(Screen):
             s.non_striker_idx = 1
             s.bowler_idx = 0
             
-            # QA NOTE: Bowling stats are NOT reset (per-match cumulative)
+            # Bowling stats are NOT reset (per-match cumulative)
             # Batting stats for innings 2 team start fresh automatically
             
             mgr.batting_team_name, mgr.bowling_team_name = \
@@ -1146,7 +1024,6 @@ class ScoringScreen(Screen):
             
             self.update_display()
         else:
-            # 🆕 FIX 2: Save innings 2 data
             mgr.state.innings2_data = InningsData(
                 score=s.score,
                 wickets=s.wickets,
