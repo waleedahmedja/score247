@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+
+# Buildozer
+.buildozer/
+bin/
+
+# Android / APK
+*.apk
+*.aab
+
+# OS
+.DS_Store
+Thumbs.db
