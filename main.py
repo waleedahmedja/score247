@@ -1229,4 +1229,3 @@ class Score247App(App):
 
 if __name__ == '__main__':
     Score247App().run()
-
