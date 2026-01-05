@@ -33,10 +33,10 @@ android.api = 31
 android.minapi = 21
 android.ndk = 25b
 android.accept_sdk_license = True
-android.arch = armeabi-v7a,arm64-v8a
+android.archs = armeabi-v7a, arm64-v8a
 
 # Optimize
-android.add_compile_options = ndkArgs "APP_SHORT_COMMANDS=true"
+# android.add_compile_options = ndkArgs "APP_SHORT_COMMANDS=true"
 
 # No Google services
 android.gradle_dependencies = 
