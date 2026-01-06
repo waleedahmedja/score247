@@ -475,23 +475,23 @@ class SetupScreen(Screen):
         
         # Rule toggles
         grid.add_widget(Label(text='Wide gives run:', halign='right', color=TEXT_SECONDARY))
-        self.wd_run = ToggleButton(text='YES', state='down')
+        self.wd_run = ToggleButton(text='Yes', state='down')
         grid.add_widget(self.wd_run)
         
         grid.add_widget(Label(text='Wide counts as ball:', halign='right', color=TEXT_SECONDARY))
-        self.wd_ball = ToggleButton(text='NO', state='normal')
+        self.wd_ball = ToggleButton(text='Yes', state='normal')
         grid.add_widget(self.wd_ball)
         
         grid.add_widget(Label(text='No-ball gives run:', halign='right', color=TEXT_SECONDARY))
-        self.nb_run = ToggleButton(text='YES', state='down')
+        self.nb_run = ToggleButton(text='Yes', state='down')
         grid.add_widget(self.nb_run)
         
         grid.add_widget(Label(text='No-ball re-bowled:', halign='right', color=TEXT_SECONDARY))
-        self.nb_rebowl = ToggleButton(text='YES', state='down')
+        self.nb_rebowl = ToggleButton(text='Yes', state='down')
         grid.add_widget(self.nb_rebowl)
         
         grid.add_widget(Label(text='Last man can play:', halign='right', color=TEXT_SECONDARY))
-        self.last_man = ToggleButton(text='NO', state='normal')
+        self.last_man = ToggleButton(text='Yes', state='normal')
         grid.add_widget(self.last_man)
         
         scroll.add_widget(grid)
@@ -1489,3 +1489,4 @@ class CricketApp(App):
 
 if __name__ == '__main__':
     CricketApp().run()
+
