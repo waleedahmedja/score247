@@ -396,6 +396,15 @@ class HomeScreen(Screen):
         
         layout.add_widget(Label(size_hint_y=HOME_SPACER_HEIGHT))
         self.add_widget(layout)
+
+        footer = Label(
+            text='Yours Truly, \n waleedahmedja',
+            font_size=FONT_SMALL,
+            size_hint_y=0.1,  # Takes up 10% of the vertical space
+            color=TEXT_SECONDARY,
+            italic=True
+        )
+        layout.add_widget(footer)
     
     def new_match(self, instance):
         mgr.reset_config()
