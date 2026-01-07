@@ -111,6 +111,13 @@ This project is built on the belief that **street cricket belongs to everyone**.
 
 ---
 
+## Download (Android)
+
+You can download the APK directly from the GitHub Releases page:
+https://github.com/waleedahmedja/Score247/releases/tag/v0.1.0
+
+---
+
 ❤️ Final Note
 
 Score247 isn’t just an app.
