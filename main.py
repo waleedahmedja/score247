@@ -630,7 +630,7 @@ class TossScreen(Screen):
         layout.add_widget(self.lbl)
         
         self.btn_toss = Button(
-            text='FLIP COIN',
+            text='Flip Coin',
             size_hint_y=0.15,
             background_color=WARNING,
             font_size=FONT_LARGE,
@@ -653,7 +653,7 @@ class TossScreen(Screen):
         self.btn_toss.disabled = True
         
         btn_bat = Button(
-            text='BAT',
+            text='Bat',
             background_color=SUCCESS,
             font_size=FONT_MEDIUM,
             bold=True
@@ -661,7 +661,7 @@ class TossScreen(Screen):
         btn_bat.bind(on_press=lambda x: self.set_choice('bat'))
         
         btn_bowl = Button(
-            text='BOWL',
+            text='Bowl',
             background_color=DANGER,
             font_size=FONT_MEDIUM,
             bold=True
@@ -712,7 +712,7 @@ class RulesSummaryScreen(Screen):
         ))
         
         btn = Button(
-            text='START MATCH',
+            text='Start Match',
             size_hint_y=0.15,
             background_color=BTN_ACTION,
             font_size=FONT_LARGE,
@@ -776,7 +776,7 @@ class ScoringScreen(Screen):
             runs_grid.add_widget(btn)
         
         btn_out = Button(
-            text='OUT',
+            text='Out',
             background_color=BTN_OUT,
             font_size=FONT_LARGE,
             bold=True
@@ -790,14 +790,14 @@ class ScoringScreen(Screen):
         extras_box = BoxLayout(spacing=SPACE_SMALL, size_hint_y=SCORING_EXTRAS_HEIGHT)
         
         btn_wd = Button(
-            text='WIDE',
+            text='Wide',
             background_color=BTN_EXTRA,
             font_size=FONT_MEDIUM
         )
         btn_wd.bind(on_press=self.handle_wide)
         
         btn_nb = Button(
-            text='NO BALL',
+            text='No Ball',
             background_color=BTN_EXTRA,
             font_size=FONT_MEDIUM
         )
@@ -811,28 +811,28 @@ class ScoringScreen(Screen):
         ctrl_box = BoxLayout(spacing=SPACE_SMALL, size_hint_y=SCORING_CONTROLS_HEIGHT)
         
         btn_undo = Button(
-            text='UNDO',
+            text='Undo',
             background_color=BTN_CONTROL,
             font_size=FONT_NORMAL
         )
         btn_undo.bind(on_press=self.do_undo)
         
         btn_bowler = Button(
-            text='BOWLER',
+            text='Bowler',
             background_color=SECONDARY,
             font_size=FONT_NORMAL
         )
         btn_bowler.bind(on_press=self.change_bowler)
         
         btn_rules = Button(
-            text='RULES',
+            text='Rules',
             background_color=BTN_CONTROL,
             font_size=FONT_NORMAL
         )
         btn_rules.bind(on_press=self.show_rules)
         
         btn_end = Button(
-            text='END',
+            text='End',
             background_color=DANGER,
             font_size=FONT_NORMAL
         )
@@ -881,8 +881,8 @@ class ScoringScreen(Screen):
         content.add_widget(runs_input)
         
         btn_box = BoxLayout(spacing=SPACE_NORMAL, size_hint_y=0.35)
-        btn_cancel = Button(text='CANCEL', background_color=BTN_CONTROL)
-        btn_ok = Button(text='OK', background_color=SUCCESS)
+        btn_cancel = Button(text='Cancel', background_color=BTN_CONTROL)
+        btn_ok = Button(text='Ok', background_color=SUCCESS)
         btn_box.add_widget(btn_cancel)
         btn_box.add_widget(btn_ok)
         content.add_widget(btn_box)
@@ -927,8 +927,8 @@ class ScoringScreen(Screen):
         content.add_widget(runs_input)
         
         btn_box = BoxLayout(spacing=SPACE_NORMAL, size_hint_y=0.35)
-        btn_cancel = Button(text='CANCEL', background_color=BTN_CONTROL)
-        btn_ok = Button(text='OK', background_color=SUCCESS)
+        btn_cancel = Button(text='Cancel', background_color=BTN_CONTROL)
+        btn_ok = Button(text='Ok', background_color=SUCCESS)
         btn_box.add_widget(btn_cancel)
         btn_box.add_widget(btn_ok)
         content.add_widget(btn_box)
@@ -1100,12 +1100,12 @@ class ScoringScreen(Screen):
         btn_box = BoxLayout(spacing=SPACE_MEDIUM, size_hint_y=0.35)
         
         btn_yes = Button(
-            text='YES, END',
+            text='Yes, End',
             background_color=DANGER,
             bold=True
         )
         btn_no = Button(
-            text='CANCEL',
+            text='Cancel',
             background_color=SECONDARY
         )
         
@@ -1204,7 +1204,7 @@ class ResultScreen(Screen):
                 winner_color = SUCCESS
         
         layout.add_widget(Label(
-            text='MATCH COMPLETE',
+            text='Match Complete',
             font_size=FONT_LARGE,
             bold=True,
             size_hint_y=RESULT_HEADER_HEIGHT,
@@ -1489,5 +1489,6 @@ class CricketApp(App):
 
 if __name__ == '__main__':
     CricketApp().run()
+
 
 
