@@ -398,7 +398,7 @@ class HomeScreen(Screen):
         self.add_widget(layout)
 
         footer = Label(
-            text='Yours Truly, \n waleedahmedja',
+            text='waleedahmedja',
             font_size=FONT_SMALL,
             size_hint_y=0.1,  # Takes up 10% of the vertical space
             color=TEXT_SECONDARY,
@@ -1489,4 +1489,5 @@ class CricketApp(App):
 
 if __name__ == '__main__':
     CricketApp().run()
+
 
